@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Man Moving on Road</title>
+  <style>
+    body {
+      background-color: #87CEEB; /* Sky color */
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Road styling */
+    .road {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 100px;
+      background: #4B4B4B;
+    }
+
+    /* Road lines */
+    .road-line {
+      position: absolute;
+      bottom: 40px;
+      width: 100%;
+      height: 20px;
+      background: repeating-linear-gradient(90deg, #FFF, #FFF 50px, transparent 50px, transparent 100px);
+    }
+
+    /* Man figure */
+    .man {
+      position: absolute;
+      bottom: 100px;
+      left: 50px;
+      width: 80px;
+      height: 150px;
+      background-color: #FFD700;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Optional: For a man image */
+    .man img {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Road element -->
+  <div class="road">
+    <div class="road-line"></div>
+  </div>
+
+  <!-- Man walking on road -->
+  <div class="man" id="man"></div>
+
+  <script>
+    let man = document.getElementById('man');
+    let manMoving = false; // State to control man's movement
+    let position = 50; // Initial position of the man
+    let speed = 2; // Speed of movement
+
+    // Function to animate the man
+    function animateMan() {
+      if (!manMoving) return;
+
+      position += speed; // Move the man to the right
+      if (position > window.innerWidth) {
+        position = -80; // Reset the position to the left side after crossing the screen
+      }
+      man.style.left = position + 'px'; // Update man's position
+
+      requestAnimationFrame(animateMan); // Keep the animation running
+    }
+
+    // Double-click to start the man's movement
+    man.addEventListener('dblclick', function() {
+      if (!manMoving) {
+        manMoving = true;
+        animateMan(); // Start the animation
+      }
+    });
+
+    // Single-click to stop the man's movement
+    man.addEventListener('click', function() {
+      manMoving = false; // Stop the animation
+    });
+
+    // Optional: You can also add touch-based movement using similar logic for touchstart and touchend
+  </script>
+
+</body>
+</html>

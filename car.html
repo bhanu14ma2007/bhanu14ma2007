@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Game</title>
+  <style>
+    body {
+      background-color: #87CEEB; /* Sky color */
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Road styling */
+    .road {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 200px;
+      background-color: #333; /* Dark road */
+    }
+
+    /* Car styling - blue square */
+    .car {
+      position: absolute;
+      bottom: 210px; /* Position just above the road */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background-color: blue; /* Blue box to represent the car */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Road element -->
+  <div class="road"></div>
+
+  <!-- Car element - blue square -->
+  <div class="car" id="car"></div>
+
+  <script>
+    let car = document.getElementById('car');
+    let roadWidth = document.body.clientWidth; // Get the width of the road
+    let carPositionX = roadWidth / 2 - 25; // Initial position of the car (centered)
+    let speed = 0; // Initial speed of the car
+    let maxSpeed = 10; // Maximum speed of the car
+    let acceleration = 0.5; // Acceleration speed
+    let deceleration = 0.05; // Deceleration when moving
+    let carDirection = 0; // -1 for left, 1 for right, 0 for no direction
+
+    // Handle keydown event for controlling the car
+    document.addEventListener('keydown', function (event) {
+      switch (event.key) {
+        case 'ArrowUp':
+          // Increase speed
+          speed = Math.min(maxSpeed, speed + acceleration);
+          break;
+        case 'ArrowDown':
+          // Stop the car
+          speed = 0;
+          break;
+        case 'ArrowLeft':
+          // Move the car left
+          carDirection = -1;
+          break;
+        case 'ArrowRight':
+          // Move the car right
+          carDirection = 1;
+          break;
+      }
+    });
+
+    // Handle keyup event to stop left/right movement when keys are released
+    document.addEventListener('keyup', function (event) {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        carDirection = 0; // Stop moving left or right
+      }
+    });
+
+    // Function to update car position based on speed and direction
+    function updateCar() {
+      // Update horizontal position (left/right)
+      carPositionX += carDirection * 5;
+
+      // Constrain car movement to road boundaries
+      if (carPositionX < 0) carPositionX = 0; // Left boundary
+      if (carPositionX > roadWidth - 50) carPositionX = roadWidth - 50; // Right boundary
+
+      // Apply car movement based on speed and direction
+      car.style.left = carPositionX + 'px';
+
+      // Gradually reduce speed when no key is pressed
+      if (speed > 0) {
+        speed -= deceleration;
+      }
+
+      // Continue animating the car
+      requestAnimationFrame(updateCar);
+    }
+
+    // Start the car animation
+    updateCar();
+  </script>
+
+</body>
+</html>

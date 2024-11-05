@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Game</title>
+  <style>
+    body {
+      background-color: #87CEEB; /* Sky color */
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Road styling */
+    .road {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 200px;
+      background-color: #333; /* Dark road */
+    }
+
+    /* Car styling - blue square */
+    .car {
+      position: absolute;
+      bottom: 210px; /* Position just above the road */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background-color: blue; /* Blue box to represent the car */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Road element -->
+  <div class="road"></div>
+
+  <!-- Car element - blue square -->
+  <div class="car" id="car"></div>
+
+  <script>
+    const car = document.getElementById('car');
+    let carPositionX = window.innerWidth / 2 - 25; // Initial horizontal position (center)
+    let carSpeed = 0; // Speed for up and down movement
+    let carVelocityX = 0; // Horizontal movement velocity
+    const maxSpeed = 10; // Maximum speed of the car
+
+    // Set up key states for movement
+    const keyState = {};
+
+    // Keydown event listener to handle key presses
+    document.addEventListener('keydown', (event) => {
+      keyState[event.key] = true;
+    });
+
+    // Keyup event listener to stop the car when keys are released
+    document.addEventListener('keyup', (event) => {
+      keyState[event.key] = false;
+    });
+
+    // Function to update the car's position and movement
+    function updateCar() {
+      // Move the car left or right
+      if (keyState['ArrowLeft']) {
+        carVelocityX = -5; // Move left
+      } else if (keyState['ArrowRight']) {
+        carVelocityX = 5; // Move right
+      } else {
+        carVelocityX = 0; // Stop horizontal movement
+      }
+
+      // Speed up or slow down the car
+      if (keyState['ArrowUp']) {
+        carSpeed = Math.min(maxSpeed, carSpeed + 0.2); // Increase speed
+      } else if (keyState['ArrowDown']) {
+        carSpeed = Math.max(0, carSpeed - 0.5); // Gradually stop
+      }
+
+      // Update car's position on the screen
+      carPositionX += carVelocityX;
+      car.style.left = carPositionX + 'px';
+
+      // Prevent the car from going off the screen
+      if (carPositionX < 0) {
+        carPositionX = 0;
+      } else if (carPositionX > window.innerWidth - 50) { // 50 is the width of the car
+        carPositionX = window.innerWidth - 50;
+      }
+
+      // Keep animating the car
+      requestAnimationFrame(updateCar);
+    }
+
+    // Start the car animation loop
+    updateCar();
+  </script>
+
+</body>
+</html>

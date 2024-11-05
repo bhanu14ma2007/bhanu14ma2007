@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch and Click Animation</title>
+  <style>
+    /* Apply background and layout settings */
+    body {
+      background: linear-gradient(45deg, #e66465, #9198e5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      position: relative;
+    }
+
+    /* CSS Animation: Bouncing Ball with high effects */
+    .ball {
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(255,0,0,1) 0%, rgba(255,140,0,1) 100%);
+      border-radius: 50%;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+      position: absolute;
+      top: 50px;
+      left: 50px;
+      touch-action: none;
+    }
+
+    /* Static styles for the JS animated box */
+    .box {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, #4caf50, #81c784);
+      border-radius: 10px;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+      position: absolute;
+      top: 50px;
+      left: 250px;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Bouncing Ball (CSS + Touch) -->
+  <div class="ball" id="ball"></div>
+
+  <!-- Moving Box (JavaScript + Touch) -->
+  <div class="box" id="box"></div>
+
+  <script>
+    // JavaScript Animation: Moving Box with double-click to start, single click to stop
+    let box = document.getElementById('box');
+    let ball = document.getElementById('ball');
+    let boxMoving = false; // State to control box animation
+    let ballMoving = false; // State to control ball animation
+    let boxPosition = 0;
+    let ballPosition = 0;
+    let velocity = 3;
+    let direction = 1;
+    let maxHeight = 400;
+
+    // Function to animate the box
+    function animateBox() {
+      if (!boxMoving) return;
+      boxPosition += velocity * direction;
+      if (boxPosition > maxHeight || boxPosition < 0) {
+        direction *= -1; // Change direction when hitting boundaries
+      }
+      box.style.top = boxPosition + 'px';
+      requestAnimationFrame(animateBox); // Keep the animation running
+    }
+
+    // Function to animate the ball
+    function animateBall() {
+      if (!ballMoving) return;
+      ballPosition += velocity * direction;
+      if (ballPosition > maxHeight || ballPosition < 0) {
+        direction *= -1; // Change direction when hitting boundaries
+      }
+      ball.style.top = ballPosition + 'px';
+      requestAnimationFrame(animateBall); // Keep the animation running
+    }
+
+    // Double-click to start box movement
+    box.addEventListener('dblclick', function() {
+      if (!boxMoving) {
+        boxMoving = true;
+        animateBox(); // Start the animation
+      }
+    });
+
+    // Single click to stop box movement
+    box.addEventListener('click', function() {
+      boxMoving = false; // Stop the animation
+    });
+
+    // Double-click to start ball movement
+    ball.addEventListener('dblclick', function() {
+      if (!ballMoving) {
+        ballMoving = true;
+        animateBall(); // Start the animation
+      }
+    });
+
+    // Single click to stop ball movement
+    ball.addEventListener('click', function() {
+      ballMoving = false; // Stop the animation
+    });
+
+    // Touch-based dragging for the ball and box
+    function addTouchListeners(element) {
+      let active = false;
+      let startX, startY, initialX, initialY;
+
+      element.addEventListener('touchstart', function(e) {
+        active = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        initialX = parseInt(window.getComputedStyle(element).left, 10);
+        initialY = parseInt(window.getComputedStyle(element).top, 10);
+      });
+
+      element.addEventListener('touchmove', function(e) {
+        if (!active) return;
+
+        let currentX = e.touches[0].clientX - startX + initialX;
+        let currentY = e.touches[0].clientY - startY + initialY;
+
+        element.style.left = currentX + 'px';
+        element.style.top = currentY + 'px';
+      });
+
+      element.addEventListener('touchend', function() {
+        active = false;
+      });
+    }
+
+    // Apply touch listeners to the ball and box
+    addTouchListeners(ball);
+    addTouchListeners(box);
+
+  </script>
+
+</body>
+</html>

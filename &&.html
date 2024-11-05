@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f0f0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h2 { text-align: center; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px; background-color: #4CAF50; color: white; width: 100%; border: none; margin: 10px 0; }
+        button:hover { background-color: #45a049; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: #f4f4f4; }
+        .hidden { display: none; }
+        .missed-col { background-color: #f00; color: #fff; }
+        .attend-col input { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="registration-form">
+    <h2>Register Student</h2>
+    <input type="text" id="reg-name" placeholder="Name" required>
+    <input type="text" id="reg-roll" placeholder="Roll Number" required>
+    <input type="text" id="reg-branch" placeholder="Branch" required>
+    <input type="text" id="reg-phone" placeholder="Phone Number" required>
+    <input type="password" id="reg-password" placeholder="Password" required>
+    <button onclick="registerStudent()">Register</button>
+</div>
+
+<div class="container hidden" id="login-form">
+    <h2>Login Student</h2>
+    <input type="text" id="login-name" placeholder="Name" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button onclick="loginStudent()">Login</button>
+</div>
+
+<div class="container hidden" id="attendance-marking">
+    <h2>Mark Attendance</h2>
+    <label for="month">Select Month:</label>
+    <select id="month" onchange="generateAttendanceTable()">
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+    </select>
+
+    <label for="year">Select Year:</label>
+    <select id="year" onchange="generateAttendanceTable()"></select>
+
+    <table id="attendance-table">
+        <thead>
+            <tr>
+                <th class="name-col">Student Name</th>
+                <!-- Days columns will be dynamically generated here -->
+                <th class="missed-col">Days Missed</th>
+            </tr>
+        </thead>
+        <tbody id="attendance-body">
+            <!-- Rows for each student will be dynamically generated here -->
+        </tbody>
+    </table>
+
+    <button onclick="submitAttendance()">Submit Attendance</button>
+</div>
+
+<div class="container hidden" id="attendance-summary">
+    <h2>Attendance Summary</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="summary-body">
+            <!-- Attendance summary will be generated here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let students = JSON.parse(localStorage.getItem('students')) || [];
+    let attendance = JSON.parse(localStorage.getItem('attendance')) || {};
+    let currentStudent = null;
+
+    // Populate year dropdown
+    const yearDropdown = document.getElementById('year');
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i >= 2000; i--) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        yearDropdown.appendChild(option);
+    }
+
+    // Register Student
+    function registerStudent() {
+        let name = document.getElementById('reg-name').value;
+        let roll = document.getElementById('reg-roll').value;
+        let branch = document.getElementById('reg-branch').value;
+        let phone = document.getElementById('reg-phone').value;
+        let password = document.getElementById('reg-password').value;
+
+        if (name && roll && branch && phone && password) {
+            students.push({ name, roll, branch, phone, password });
+            localStorage.setItem('students', JSON.stringify(students));
+            alert('Registration successful!');
+            showSection('login-form');
+        } else {
+            alert('Please fill in all fields.');
+        }
+    }
+
+    // Login Student
+    function loginStudent() {
+        let name = document.getElementById('login-name').value;
+        let password = document.getElementById('login-password').value;
+
+        let student = students.find(s => s.name === name && s.password === password);
+
+        if (student) {
+            currentStudent = student;
+            alert('Login successful!');
+            showSection('attendance-marking');
+            generateAttendanceTable();
+        } else {
+            alert('Invalid credentials.');
+        }
+    }
+
+    // Show only the selected section
+    function showSection(sectionId) {
+        document.getElementById('registration-form').classList.add('hidden');
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('attendance-marking').classList.add('hidden');
+        document.getElementById('attendance-summary').classList.add('hidden');
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Generate attendance table based on the selected month and year
+    function generateAttendanceTable() {
+        let month = document.getElementById('month').value;
+        let year = document.getElementById('year').value;
+        let tbody = document.getElementById('attendance-body');
+        let daysInMonth = new Date(year, month, 0).getDate(); // Get number of days in the selected month
+
+        tbody.innerHTML = ''; // Clear previous rows
+
+        // Create header for days of the month
+        let headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th class="name-col">Student Name</th>';
+        for (let day = 1; day <= daysInMonth; day++) {
+            let th = document.createElement('th');
+            th.className = 'attend-col';
+            th.textContent = `Day ${day}`;
+            headerRow.appendChild(th);
+        }
+        headerRow.innerHTML += '<th class="missed-col">Days Missed</th>';
+        tbody.appendChild(headerRow);
+
+        // Create rows for each student
+        students.forEach(student => {
+            let row = document.createElement('tr');
+            row.className = 'student';
+            let studentName = student.name;
+
+            row.innerHTML = `<td class="name-col">${studentName}</td>`;
+
+            let missedDays = 0;
+            for (let day = 1; day <= daysInMonth; day++) {
+                let date = `${year}-${month}-${day}`;
+                let cell = document.createElement('td');
+                cell.className = 'attend-col';
+                let checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.disabled = true; // Make checkbox read-only
+
+                // Determine if the student was present or absent
+                if (attendance[studentName] && attendance[studentName][date] === 'Present') {
+                    checkbox.checked = true;
+                } else {
+                    missedDays++;
+                }
+
+                cell.appendChild(checkbox);
+                row.appendChild(cell);
+            }
+
+            let missedCell = document.createElement('td');
+            missedCell.className = 'missed-col';
+            missedCell.textContent = missedDays;
+            row.appendChild(missedCell);
+
+            tbody.appendChild(row);
+        });
+    }
+
+    // Submit Attendance
+    function submitAttendance() {
+        let month = document.getElementById('month').value;
+        let year = document.getElementById('year').value;
+
+        students.forEach(student => {
+            let studentName = student.name;
+            let attendanceRecords = attendance[studentName] || {};
+
+            // Update attendance records based on table data
+            let row = document.querySelector(`#attendance-body tr.student:nth-child(${students.indexOf(student) + 2})`);
+            let checkboxes = row.querySelectorAll('td.attend-col input[type="checkbox"]');
+
+            checkboxes.forEach((checkbox, index) => {
+                let day = index + 1;
+                let date = `${year}-${month}-${day}`;
+                attendanceRecords[date] = checkbox.checked ? 'Present' : 'Absent';
+            });
+
+            // Save updated records
+            attendance[studentName] = attendanceRecords;
+        });
+
+        // Save to localStorage
+        localStorage.setItem('attendance', JSON.stringify(attendance));
+        alert('Attendance submitted successfully!');
+    }
+
+    // Populate attendance summary (Optional, based on the selected student)
+    function generateAttendanceSummary() {
+        let summaryBody = document.getElementById('summary-body');
+        summaryBody.innerHTML = '';
+
+        if (!currentStudent) {
+            return;
+        }
+
+        let studentName = currentStudent.name;
+        let records = attendance[studentName] || {};
+        
+        Object.keys(records).forEach(date => {
+            let status = records[date];
+            let row = document.createElement('tr');
+            row.innerHTML = `<td>${date}</td><td>${status}</td>`;
+            summaryBody.appendChild(row);
+        });
+    }
+
+    // Initial call to populate the year dropdown
+    generateAttendanceTable();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High-Effect Animation</title>
+  <style>
+    /* Apply background and layout settings */
+    body {
+      background: linear-gradient(45deg, #e66465, #9198e5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    /* CSS Animation: Bouncing Ball with high effects */
+    .ball {
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(255,0,0,1) 0%, rgba(255,140,0,1) 100%);
+      border-radius: 50%;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+      position: absolute;
+      top: 0;
+      left: 50px;
+      animation: bounce 2s infinite cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    /* Keyframes for bouncing effect */
+    @keyframes bounce {
+      0%, 100% {
+        top: 0;
+        transform: scale(1);
+      }
+      50% {
+        top: 400px;
+        transform: scale(1.2); /* Add scaling effect to simulate stretch */
+      }
+    }
+
+    /* Static styles for the JS animated box */
+    .box {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, #4caf50, #81c784);
+      border-radius: 10px;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.5);
+      position: absolute;
+      top: 0;
+      left: 250px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Bouncing Ball (CSS) -->
+  <div class="ball"></div>
+
+  <!-- Moving Box (JavaScript) -->
+  <div class="box" id="box"></div>
+
+  <script>
+    // JavaScript Animation: Moving Box with acceleration effect
+    let box = document.getElementById('box');
+    let position = 0;
+    let velocity = 0;
+    let acceleration = 0.2;
+    let direction = 1;
+    let maxHeight = 400;
+
+    function animateBox() {
+      velocity += acceleration * direction; // Accelerate
+      position += velocity;
+
+      // Reverse direction and decelerate when hitting boundaries
+      if (position > maxHeight || position < 0) {
+        direction *= -1;
+        velocity = -velocity * 0.9; // Lose some velocity to simulate friction
+      }
+
+      box.style.top = position + 'px';
+      requestAnimationFrame(animateBox);
+    }
+
+    // Start the JavaScript animation
+    animateBox();
+  </script>
+
+</body>
+</html>

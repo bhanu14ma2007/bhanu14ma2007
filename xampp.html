@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        .toggle-btn {
+            background-color: #007bff;
+        }
+
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h2>Login</h2>
+            <form onsubmit="return handleLogin()">
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginThumb">Thumb Image:</label>
+                    <input type="file" id="loginThumb" name="thumb" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit">Login</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Attendance Marking Section -->
+        <div id="attendanceSection" style="display: none;">
+            <h2>Attendance Sheet</h2>
+            <form onsubmit="return markAttendance()">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Name</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTable">
+                        <!-- Rows will be dynamically generated -->
+                    </tbody>
+                </table>
+                <button type="submit">Submit Attendance</button>
+            </form>
+        </div>
+
+        <!-- Absent Report Section -->
+        <div id="reportSection" style="display: none;">
+            <h2>Absent Students Report</h2>
+            <ul id="absentList">
+                <!-- List will be generated dynamically -->
+            </ul>
+            <button onclick="sendEmail()">Send Email to Absent Students</button>
+        </div>
+    </div>
+
+    <script>
+        const students = [
+            { rollNumber: '001', name: 'John Doe', email: 'john@example.com' },
+            { rollNumber: '002', name: 'Jane Smith', email: 'jane@example.com' },
+            { rollNumber: '003', name: 'Alice Johnson', email: 'alice@example.com' },
+            { rollNumber: '004', name: 'Bob Brown', email: 'bob@example.com' }
+        ];
+
+        let absentStudents = [];
+
+        // Handle login and show attendance sheet
+        function handleLogin() {
+            const enteredPassword = document.getElementById('loginPassword').value;
+            const enteredThumb = document.getElementById('loginThumb').files[0];
+
+            const registeredPassword = localStorage.getItem('registeredPassword');
+            const registeredThumb = localStorage.getItem('registeredThumb');
+
+            if (enteredPassword === registeredPassword && enteredThumb) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const enteredThumbData = event.target.result;
+
+                    if (enteredThumbData === registeredThumb) {
+                        alert("Login successful!");
+                        showAttendanceSheet();
+                    } else {
+                        alert("Invalid thumb image.");
+                    }
+                };
+                reader.readAsDataURL(enteredThumb);
+            } else {
+                alert("Invalid password or thumb image.");
+            }
+
+            return false;
+        }
+
+        // Show attendance sheet
+        function showAttendanceSheet() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('attendanceSection').style.display = 'block';
+
+            const table = document.getElementById('attendanceTable');
+            table.innerHTML = '';
+            students.forEach(student => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${student.rollNumber}</td>
+                        <td>${student.name}</td>
+                        <td><input type="radio" name="attendance_${student.rollNumber}" value="present"></td>
+                        <td><input type="radio" name="attendance_${student.rollNumber}" value="absent"></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Mark attendance and list absent students
+        function markAttendance() {
+            absentStudents = [];
+            students.forEach(student => {
+                const attendance = document.querySelector(`input[name="attendance_${student.rollNumber}"]:checked`);
+                if (attendance && attendance.value === 'absent') {
+                    absentStudents.push(student);
+                }
+            });
+
+            displayAbsentReport();
+            return false; // Prevent form submission
+        }
+
+        // Display the absent students report
+        function displayAbsentReport() {
+            document.getElementById('attendanceSection').style.display = 'none';
+            document.getElementById('reportSection').style.display = 'block';
+
+            const absentList = document.getElementById('absentList');
+            absentList.innerHTML = '';
+            absentStudents.forEach(student => {
+                absentList.innerHTML += `<li>${student.name} (${student.email})</li>`;
+            });
+        }
+
+        // Simulate sending email to absent students
+        function sendEmail() {
+            if (absentStudents.length > 0) {
+                absentStudents.forEach(student => {
+                    console.log(`Sending email to: ${student.email}`);
+                    alert(`Email sent to ${student.email}`);
+                });
+            } else {
+                alert('No absent students to send emails to.');
+            }
+        }
+    </script>
+</body>
+</html>
